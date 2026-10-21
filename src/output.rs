@@ -10,7 +10,6 @@
 use colored::Colorize;
 use serde::Serialize;
 
-
 pub fn banner() {
     println!(
         "{}",

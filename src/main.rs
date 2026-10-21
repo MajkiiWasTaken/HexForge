@@ -6,8 +6,10 @@
 *
 * ver. 0.1.0
 *************************************************/
+mod core;
 mod output;
 
+use crate::core::numeric::NumberBase;
 use clap::{Parser, Subcommand};
 use std::process::ExitCode;
 
@@ -35,6 +37,9 @@ enum Commands {
     Convert {
         /// Number to convert
         value: String,
+
+        #[arg(long, value_enum, default_value_t = NumberBase::Dec)]
+        from: NumberBase,
     },
 }
 
@@ -48,8 +53,14 @@ fn run() -> Result<(), String> {
             Ok(())
         }
 
-        Commands::Convert { value } => {
-            println!("Converting value: {value}");
+        Commands::Convert { value, from } => {
+            let number = core::numeric::parse_number(&value, from)?;
+
+            println!("Decimal:     {number}");
+            println!("Hexadecimal: 0x{number:X}");
+            println!("Binary:      0b{number:b}");
+            println!("Octal:       0o{number:o}");
+
             Ok(())
         }
     }
