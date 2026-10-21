@@ -8,6 +8,7 @@
 *************************************************/
 mod core;
 mod output;
+mod binary;
 
 use crate::core::numeric::NumberBase;
 use clap::{Parser, Subcommand};
@@ -29,8 +30,7 @@ struct Cli {
 enum Commands {
     /// Display a hexadecimal dump of a file
     Dump {
-        /// Path to the binary file
-        path: String,
+        path: std::path::PathBuf,
     },
 
     /// Convert a number between numeral systems
@@ -49,8 +49,8 @@ fn run() -> Result<(), String> {
 
     match cli.command {
         Commands::Dump { path } => {
-            println!("Dumping file: {path}");
-            Ok(())
+            println!("Dumping file: {}", path.display());
+            binary::dump::dump_file(&path)
         }
 
         Commands::Convert { value, from } => {

@@ -12,7 +12,7 @@ pub enum NumberBase {
     Bin,
     Hex,
     Dec,
-    Oct
+    Oct,
 }
 
 impl NumberBase {
