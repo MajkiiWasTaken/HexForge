@@ -8,12 +8,11 @@
 *************************************************/
 
 use colored::Colorize;
-use serde::Serialize;
 
 pub fn banner() {
     println!(
         "{}",
-        format!("◆ RepoDoctor v{}", env!("CARGO_PKG_VERSION"))
+        format!("◆ HexForge v{}", env!("CARGO_PKG_VERSION"))
             .bright_blue()
             .bold()
     );
