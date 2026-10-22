@@ -41,6 +41,7 @@ pub fn encode_u32(value: u32, order: ByteOrder) -> [u8; 4] {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;

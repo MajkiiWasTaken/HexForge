@@ -7,6 +7,7 @@
 * ver. 0.1.0
 *************************************************/
 
+#[derive(Debug)]
 pub enum HexError {
     EmptyInput,             // empty
     OddLength,              // odd number of chars e.g. "ABC"

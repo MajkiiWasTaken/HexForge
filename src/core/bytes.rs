@@ -18,7 +18,9 @@ pub fn parse_hex(input: &str) -> Result<Vec<u8>, HexError> {
         return Err(HexError::EmptyInput);
     }
 
-    decode_hex(input)
+    let normalized: String = input.replace("0x", "").replace("0X", "").chars().filter(|c| !c.is_ascii_whitespace() && *c != ':').collect();
+
+    decode_hex(&normalized)
 }
 
 pub fn decode_hex(s: &str) -> Result<Vec<u8>, HexError> {
