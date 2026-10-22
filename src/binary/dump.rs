@@ -8,27 +8,42 @@ use core::panic;
 * ver. 0.1.0
 *************************************************/
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Seek, SeekFrom};
 use std::path::Path;
 
-pub fn dump_file(path: &Path) -> Result<(), String> {
-    let mut file = File::open(path)
-        .map_err(|e| format!("Cannot open file: {e}"))?;
+use crate::core::bytes;
+
+pub fn dump_file(path: &Path, offset: Option<u64>, length: Option<u64>) -> Result<(), String> {
+    let mut file = File::open(path).map_err(|e| format!("Cannot open file: {e}"))?;
 
     let mut buffer = [0u8; 16];
 
-    let mut offset: u64 = 0;
+    let start = offset.unwrap_or(0);
+    file.seek(SeekFrom::Start(start))
+        .map_err(|e| format!("Cannot seek file: {e}"))?;
+
+    let mut off = start;
+    let mut remaining = length;
 
     loop {
+        if remaining == Some(0) {
+            break;
+        }
+
+        let to_read = match remaining {
+            Some(bytes) => bytes.min(buffer.len() as u64) as usize,
+            None => buffer.len(),
+        };
+
         let n = file
-            .read(&mut buffer)
+            .read(&mut buffer[..to_read])
             .map_err(|e| format!("Cannot read file: {e}"))?;
 
         if n == 0 {
             break;
         }
 
-        print!("{offset:08X}  ");
+        print!("{off:08X}|  ");
 
         // HEX representation
         for byte in &buffer[..n] {
@@ -55,7 +70,11 @@ pub fn dump_file(path: &Path) -> Result<(), String> {
 
         println!("|");
 
-        offset += n as u64;
+        if let Some(bytes) = &mut remaining {
+            *bytes -= n as u64;
+        };
+
+        off += n as u64;
     }
 
     Ok(())

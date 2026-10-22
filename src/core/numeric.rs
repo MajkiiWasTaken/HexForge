@@ -51,6 +51,20 @@ pub fn parse_number(input: &str, base: NumberBase) -> Result<u64, String> {
     u64::from_str_radix(cleaned, base.radix()).map_err(|error| format!("Invalid number: {error}"))
 }
 
+pub fn parse_cli_number(input: &str) -> Result<u64, String> {
+    let input = input.trim();
+
+    let base = if input.starts_with("0x") || input.starts_with("0X") {
+        NumberBase::Hex
+    } else if input.starts_with("0b") || input.starts_with("0B") {
+        NumberBase::Bin
+    } else {
+        NumberBase::Dec
+    };
+
+    parse_number(input, base)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,5 +93,21 @@ mod tests {
     #[test]
     fn test_overflow() {
         assert!(parse_number("18446744073709551616", NumberBase::Dec).is_err());
+    }
+
+    #[test]
+    fn test_cli_number_parser() {
+        assert_eq!(parse_cli_number("256"), Ok(256));
+        assert_eq!(parse_cli_number("0x100"), Ok(256));
+        assert_eq!(parse_cli_number("0X100"), Ok(256));
+        assert_eq!(parse_cli_number("0b100000000"), Ok(256));
+        assert_eq!(parse_cli_number("0B100000000"), Ok(256));
+    }
+
+    #[test]
+    fn test_cli_number_invalid() {
+        assert!(parse_cli_number("0xGG").is_err());
+        assert!(parse_cli_number("-1").is_err());
+        assert!(parse_cli_number("").is_err());
     }
 }

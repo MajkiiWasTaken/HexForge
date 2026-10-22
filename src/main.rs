@@ -6,11 +6,11 @@
 *
 * ver. 0.1.0
 *************************************************/
+mod binary;
 mod core;
 mod output;
-mod binary;
 
-use crate::core::numeric::NumberBase;
+use crate::core::numeric::{NumberBase, parse_cli_number};
 use clap::{Parser, Subcommand};
 use std::process::ExitCode;
 
@@ -31,6 +31,12 @@ enum Commands {
     /// Display a hexadecimal dump of a file
     Dump {
         path: std::path::PathBuf,
+
+        #[arg(long, value_parser = parse_cli_number)]
+        offset: Option<u64>,
+
+        #[arg(long, value_parser = parse_cli_number)]
+        length: Option<u64>,
     },
 
     /// Convert a number between numeral systems
@@ -48,9 +54,13 @@ fn run() -> Result<(), String> {
     output::banner();
 
     match cli.command {
-        Commands::Dump { path } => {
+        Commands::Dump {
+            path,
+            offset,
+            length,
+        } => {
             println!("Dumping file: {}", path.display());
-            binary::dump::dump_file(&path)
+            binary::dump::dump_file(&path, offset, length)
         }
 
         Commands::Convert { value, from } => {
