@@ -10,7 +10,11 @@ mod binary;
 mod core;
 mod output;
 
-use crate::core::{codec::DataType, endian::ByteOrder, numeric::{NumberBase, parse_cli_number}};
+use crate::core::{
+    codec::DataType,
+    endian::ByteOrder,
+    numeric::{NumberBase, parse_cli_number},
+};
 use clap::{Parser, Subcommand};
 use std::process::ExitCode;
 
@@ -59,7 +63,7 @@ enum Commands {
         // Byte order
         #[arg(long, value_enum, default_value_t = ByteOrder::Big)]
         endian: ByteOrder,
-    }
+    },
 }
 
 fn run() -> Result<(), String> {
@@ -87,40 +91,17 @@ fn run() -> Result<(), String> {
             Ok(())
         }
 
-        Commands::Decode {value, data_type, endian,} => {
-            // Parse HEX string into bytes
-            let bytes = core::bytes::parse_hex(&value)
-                .map_err(|e| format!("Invalid HEX input: {e:?}"))?;
+        Commands::Decode {
+            value,
+            data_type,
+            endian,
+        } => {
+            let bytes =
+                core::bytes::parse_hex(&value).map_err(|e| format!("Invalid HEX input: {e:?}"))?;
 
-            //Validate byte count
-            if bytes.len() != data_type.byte_size() {
-                return Err(format!(
-                    "Invalid byte count: expected {}, got {}",
-                    data_type.byte_size(),
-                    bytes.len()
-                ));
-            }
+            let result = core::codec::decode(&bytes, data_type, endian)?;
 
-            // Decode according to selected data type
-            match data_type {
-                DataType::U16 => {
-                    let array: [u8; 2] = bytes
-                        .as_slice()
-                        .try_into()
-                        .map_err(|_| "Expected exactly 2 bytes".to_string())?;
-
-                    let result = core::endian::decode_u16(array, endian);
-
-                    println!("Value: {result}");
-                }
-
-                _ => {
-                    return Err(format!(
-                        "Decoding {:?} is not implemented yet",
-                        data_type
-                    ));
-                }
-            }
+            println!("Value: {result}");
 
             Ok(())
         }
