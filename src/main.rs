@@ -9,14 +9,15 @@
 mod binary;
 mod core;
 mod output;
+mod modbus;
 
-use crate::core::{
+use crate::{core::{
     codec::DataType,
     endian::ByteOrder,
     numeric::{NumberBase, parse_cli_number},
-};
+}, modbus::order::{RegisterOrder, split_registers}};
 use clap::{Parser, Subcommand};
-use std::process::ExitCode;
+use std::{process::ExitCode, result};
 
 #[derive(Parser)]
 #[command(
@@ -63,6 +64,27 @@ enum Commands {
         // Byte order
         #[arg(long, value_enum, default_value_t = ByteOrder::Big)]
         endian: ByteOrder,
+
+        // Register order
+        #[arg(long, value_enum, default_value_t = RegisterOrder::ABCD)]
+        order: RegisterOrder,
+    },
+
+    Encode {
+        // Hex bytes to encode
+        value: String,
+
+        //Target data type
+        #[arg(long = "type")]
+        data_type: DataType,
+
+        // Byte order
+        #[arg(long, value_enum, default_value_t = ByteOrder::Big)]
+        endian: ByteOrder,
+
+        // Register order
+        #[arg(long, value_enum, default_value_t = RegisterOrder::ABCD)]
+        order: RegisterOrder,
     },
 }
 
@@ -95,13 +117,61 @@ fn run() -> Result<(), String> {
             value,
             data_type,
             endian,
+            order,
         } => {
-            let bytes =
-                core::bytes::parse_hex(&value).map_err(|e| format!("Invalid HEX input: {e:?}"))?;
+            let bytes = core::bytes::parse_hex(&value)
+                .map_err(|e| format!("Invalid HEX input: {e:?}"))?;
 
-            let result = core::codec::decode(&bytes, data_type, endian)?;
+            let array: [u8; 4] = bytes
+                .as_slice()
+                .try_into()
+                .map_err(|_| "Expected exactly 4 bytes".to_string())?;
 
-            println!("Value: {result}");
+            let reordered = modbus::order::reorder_bytes(array, order);
+
+            let result = core::codec::decode(
+                &reordered,
+                data_type,
+                ByteOrder::Big,
+            )?;
+
+            println!("Decoded value: {result}");
+
+            Ok(())
+        }
+
+        Commands::Encode {
+            value,
+            data_type,
+            endian,
+            order,
+        } => {
+            // Encode numeric value into raw bytes
+            let bytes = core::codec::encode(&value, data_type, endian)?;
+
+            // Apply Modbus register order
+            let bytes = if bytes.len() == 4 {
+                let array: [u8; 4] = bytes
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| "Expected exactly 4 bytes".to_string())?;
+
+                let registers = split_registers(array);
+
+                println!("Register 1: {}", registers[0]);
+                println!("Register 2: {}", registers[1]);
+
+                modbus::order::reorder_bytes(array, order).to_vec()
+            } else {
+                bytes
+            };
+
+            // Convert bytes to HEX string
+            let hex = core::bytes::encode_hex(&bytes);
+            
+            
+
+            println!("HEX: {hex}");
 
             Ok(())
         }

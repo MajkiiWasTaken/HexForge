@@ -133,3 +133,97 @@ pub fn decode(bytes: &[u8], data_type: DataType, endian: ByteOrder) -> Result<St
 
     Ok(result)
 }
+
+pub fn encode(value: &str, data_type: DataType, endian: ByteOrder) -> Result<Vec<u8>, String> {
+    let result = match data_type {
+        DataType::U8 => {
+            let number: u8 = value
+                .parse()
+                .map_err(|e| format!("Invalid u8 value: {e}"))?;
+
+            vec![number]
+        }
+
+        DataType::I8 => {
+            let number: i8 = value
+                .parse()
+                .map_err(|e| format!("Invalid i8 value: {e}"))?;
+
+            number.to_be_bytes().to_vec()
+        }
+
+        DataType::U16 => {
+            let number: u16 = value.parse().map_err(|e| format!("Invalid u16 value: {e}"))?;
+
+            match endian {
+                ByteOrder::Big => number.to_be_bytes().to_vec(),
+                ByteOrder::Little => number.to_le_bytes().to_vec(),
+            }
+        }
+
+        DataType::I16 => {
+            let number: i16 = value.parse().map_err(|e| format!("Invalid i16 value: {e}"))?;
+
+            match endian {
+                ByteOrder::Big => number.to_be_bytes().to_vec(),
+                ByteOrder::Little => number.to_le_bytes().to_vec(),
+            }
+        }
+
+        DataType::U32 => {
+            let number: u32 = value.parse().map_err(|e| format!("Invalid u32 value: {e}"))?;
+
+            match endian {
+                ByteOrder::Big => number.to_be_bytes().to_vec(),
+                ByteOrder::Little => number.to_le_bytes().to_vec(),
+            }
+        }
+
+        DataType::I32 => {
+            let number: i32 = value.parse().map_err(|e| format!("Invalid i32 value: {e}"))?;
+
+            match endian {
+                ByteOrder::Big => number.to_be_bytes().to_vec(),
+                ByteOrder::Little => number.to_le_bytes().to_vec(),
+            }
+        }
+
+        DataType::U64 => {
+            let number: u64 = value.parse().map_err(|e| format!("Invalid u64 value: {e}"))?;
+
+            match endian {
+                ByteOrder::Big => number.to_be_bytes().to_vec(),
+                ByteOrder::Little => number.to_le_bytes().to_vec(),
+            }
+        }
+
+        DataType::I64 => {
+            let number: i64 = value.parse().map_err(|e| format!("Invalid i64 value: {e}"))?;
+
+            match endian {
+                ByteOrder::Big => number.to_be_bytes().to_vec(),
+                ByteOrder::Little => number.to_le_bytes().to_vec(),
+            }
+        }
+
+        DataType::F32 => {
+            let number: f32 = value.parse().map_err(|e| format!("Invalid F32 value: {e}"))?;
+
+            match endian {
+                ByteOrder::Big => number.to_be_bytes().to_vec(),
+                ByteOrder::Little => number.to_le_bytes().to_vec(),
+            }
+        }
+
+        DataType::F64 => {
+            let number: f64 = value.parse().map_err(|e| format!("Invalid f64 value: {e}"))?;
+
+            match endian {
+                ByteOrder::Big => number.to_be_bytes().to_vec(),
+                ByteOrder::Little => number.to_le_bytes().to_vec(),
+            }
+        }
+    };
+
+    Ok(result)
+}
