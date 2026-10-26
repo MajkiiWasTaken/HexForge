@@ -10,6 +10,7 @@ mod binary;
 mod core;
 mod output;
 mod modbus;
+mod checksum;
 
 use crate::{core::{
     codec::DataType,
@@ -85,6 +86,19 @@ enum Commands {
         // Register order
         #[arg(long, value_enum, default_value_t = RegisterOrder::ABCD)]
         order: RegisterOrder,
+    },
+
+    Crc {
+        #[command(subcommand)]
+        algorithm: CrcCommands,
+    },
+}
+
+#[derive(Subcommand)]
+enum CrcCommands {
+    Modbus {
+        /// HEX bytes used for CRC calculation
+        value: String,
     },
 }
 
@@ -174,6 +188,20 @@ fn run() -> Result<(), String> {
             println!("HEX: {hex}");
 
             Ok(())
+        }
+
+        Commands::Crc { algorithm } => {
+            match algorithm {
+                CrcCommands::Modbus { value } => {
+                    let bytes = core::bytes::parse_hex(&value) .map_err(|e| format!("Invalid hex input: {e:?}"))?;
+
+                    let crc = checksum::crc16::crc16_modbus(&bytes);
+
+                    println!("CRC: 0x{crc:04X}");
+
+                    Ok(())
+                }
+            }
         }
     }
 }
