@@ -1,5 +1,5 @@
 /************************************************
-* File: main.rs
+* File: bytes.rs
 * Author: Michal Švrček
 *
 * Byte operations.

@@ -1,5 +1,5 @@
 /************************************************
-* File: main.rs
+* File: order.rs
 * Author: Michal Švrček
 *
 * Registers related operations.

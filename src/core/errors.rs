@@ -1,5 +1,5 @@
 /************************************************
-* File: main.rs
+* File: error.rs
 * Author: Michal Švrček
 *
 * Error definitions.

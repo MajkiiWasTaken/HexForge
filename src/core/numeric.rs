@@ -1,5 +1,5 @@
 /************************************************
-* File: main.rs
+* File: numeric.rs
 * Author: Michal Švrček
 *
 * Numeric operations.

@@ -1,6 +1,5 @@
-use core::panic;
 /************************************************
-* File: main.rs
+* File: dump.rs
 * Author: Michal Švrček
 *
 * File dumps.
@@ -10,6 +9,7 @@ use core::panic;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::Path;
+use core::panic;
 
 use crate::core::bytes;
 

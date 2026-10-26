@@ -1,5 +1,5 @@
 /************************************************
-* File: main.rs
+* File: endian.rs
 * Author: Michal Švrček
 *
 * Endian operations.

@@ -1,5 +1,5 @@
 /************************************************
-* File: main.rs
+* File: codec.rs
 * Author: Michal Švrček
 *
 * Codec enums and functions.
