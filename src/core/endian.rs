@@ -41,39 +41,39 @@ pub enum ByteOrder {
 //     }
 // }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
 
-    // #[test]
-    // fn test_decode_u16() {
-    //     assert_eq!(decode_u16([0x12, 0x34], ByteOrder::Big), 4660);
-    //     assert_eq!(decode_u16([0x12, 0x34], ByteOrder::Little), 13330);
-    // }
+//     // #[test]
+//     // fn test_decode_u16() {
+//     //     assert_eq!(decode_u16([0x12, 0x34], ByteOrder::Big), 4660);
+//     //     assert_eq!(decode_u16([0x12, 0x34], ByteOrder::Little), 13330);
+//     // }
 
-    // #[test]
-    // fn test_encode_u16() {
-    //     assert_eq!(encode_u16(4660, ByteOrder::Big), [0x12, 0x34]);
-    //     assert_eq!(encode_u16(4660, ByteOrder::Little), [0x34, 0x12]);
-    // }
+//     // #[test]
+//     // fn test_encode_u16() {
+//     //     assert_eq!(encode_u16(4660, ByteOrder::Big), [0x12, 0x34]);
+//     //     assert_eq!(encode_u16(4660, ByteOrder::Little), [0x34, 0x12]);
+//     // }
 
-    // #[test]
-    // fn test_decode_u32() {
-    //     let bytes = [0x12, 0x34, 0x56, 0x78];
+//     // #[test]
+//     // fn test_decode_u32() {
+//     //     let bytes = [0x12, 0x34, 0x56, 0x78];
 
-    //     assert_eq!(decode_u32(bytes, ByteOrder::Big), 0x12345678);
-    //     assert_eq!(decode_u32(bytes, ByteOrder::Little), 0x78563412);
-    // }
+//     //     assert_eq!(decode_u32(bytes, ByteOrder::Big), 0x12345678);
+//     //     assert_eq!(decode_u32(bytes, ByteOrder::Little), 0x78563412);
+//     // }
 
-    // #[test]
-    // fn test_encode_u32() {
-    //     let value = 0x12345678;
+//     // #[test]
+//     // fn test_encode_u32() {
+//     //     let value = 0x12345678;
 
-    //     assert_eq!(encode_u32(value, ByteOrder::Big), [0x12, 0x34, 0x56, 0x78]);
+//     //     assert_eq!(encode_u32(value, ByteOrder::Big), [0x12, 0x34, 0x56, 0x78]);
 
-    //     assert_eq!(
-    //         encode_u32(value, ByteOrder::Little),
-    //         [0x78, 0x56, 0x34, 0x12]
-    //     );
-    // }
-}
+//     //     assert_eq!(
+//     //         encode_u32(value, ByteOrder::Little),
+//     //         [0x78, 0x56, 0x34, 0x12]
+//     //     );
+//     // }
+// }

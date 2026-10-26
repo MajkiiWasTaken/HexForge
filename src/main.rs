@@ -18,7 +18,7 @@ use crate::{core::{
     numeric::{NumberBase, parse_cli_number},
 }, modbus::order::{RegisterOrder, split_registers}};
 use clap::{Parser, Subcommand};
-use std::{process::ExitCode, result};
+use std::process::ExitCode;
 
 #[derive(Parser)]
 #[command(
@@ -130,7 +130,7 @@ fn run() -> Result<(), String> {
         Commands::Decode {
             value,
             data_type,
-            endian,
+            endian: _,
             order,
         } => {
             let bytes = core::bytes::parse_hex(&value)
@@ -197,7 +197,15 @@ fn run() -> Result<(), String> {
 
                     let crc = checksum::crc16::crc16_modbus(&bytes);
 
+                    let crc_bytes = crc.to_le_bytes();
+
                     println!("CRC: 0x{crc:04X}");
+
+                    println!(
+                        "CRC bytes: {:02X} {:02X}",
+                        crc_bytes[0],
+                        crc_bytes[1]
+                    );
 
                     Ok(())
                 }

@@ -19,13 +19,13 @@ pub fn banner() {
     println!("{}", "────────────────────────────────────────".dimmed());
 }
 
-pub fn heading(message: &str) {
-    println!("\n{}", message.bright_cyan().bold());
-}
+// pub fn heading(message: &str) {
+//     println!("\n{}", message.bright_cyan().bold());
+// }
 
-pub fn info(message: &str) {
-    println!("{} {message}", "[INFO]".blue().bold());
-}
+// pub fn info(message: &str) {
+//     println!("{} {message}", "[INFO]".blue().bold());
+// }
 
 pub fn error(message: &str) {
     eprintln!("{} {message}", "[ERROR]".red().bold());

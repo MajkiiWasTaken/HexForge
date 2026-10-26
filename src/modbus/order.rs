@@ -8,7 +8,6 @@
 *************************************************/
 use clap::ValueEnum;
 
-use crate::modbus::order;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum RegisterOrder {
@@ -34,14 +33,14 @@ pub fn split_registers(bytes: [u8; 4]) -> [u16; 2] {
     ]
 }
 
-pub fn join_registers(registers: [u16; 2]) -> [u8; 4] {
-    let first = registers[0].to_be_bytes();
-    let second = registers[1].to_be_bytes();
+// pub fn join_registers(registers: [u16; 2]) -> [u8; 4] {
+//     let first = registers[0].to_be_bytes();
+//     let second = registers[1].to_be_bytes();
 
-    [
-        first[0],
-        first[1],
-        second[0],
-        second[1],
-    ]
-}
+//     [
+//         first[0],
+//         first[1],
+//         second[0],
+//         second[1],
+//     ]
+// }
