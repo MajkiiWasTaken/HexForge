@@ -103,6 +103,12 @@ enum Commands {
         /// HEX byte sequence to find
         pattern: String,
     },
+
+    Compare {
+        /// BINS
+        file1: std::path::PathBuf,
+        file2: std::path::PathBuf,
+    }
 }
 
 #[derive(Subcommand)]
@@ -308,6 +314,44 @@ fn run() -> Result<(), String> {
                 Ok(())
             }
         },
+
+        Commands::Compare { file1, file2 } => {
+            // Read both files
+            let a = std::fs::read(&file1)
+                .map_err(|e| format!("Cannot read first file: {e}"))?;
+
+            let b = std::fs::read(&file2)
+                .map_err(|e| format!("Cannot read second file: {e}"))?;
+
+            // Compare binary data
+            let differences = binary::compare::compare_bytes(&a, &b);
+
+            println!("Comparing:");
+            println!("File 1: {}", file1.display());
+            println!("File 2: {}", file2.display());
+
+            println!();
+            println!("{:<12} {:>6} {:>6}", "Offset", "File 1", "File 2");
+            println!("{}", "-".repeat(28));
+
+            for &offset in &differences {
+                let left = a.get(offset);
+                let right = b.get(offset);
+
+                println!(
+                    "{:<12} {:>6} {:>6}",
+                    format!("0x{offset:08X}"),
+                    left.map(|b| format!("{b:02X}"))
+                        .unwrap_or_else(|| "--".to_string()),
+                    right.map(|b| format!("{b:02X}"))
+                        .unwrap_or_else(|| "--".to_string())
+                );
+            }
+
+            println!("Total differences: {}", differences.len());
+
+            Ok(())
+        }
     }
 }
 
