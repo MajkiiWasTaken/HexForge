@@ -21,7 +21,7 @@ use crate::{
     modbus::order::{RegisterOrder, split_registers},
 };
 use clap::{Parser, Subcommand};
-use std::{path, process::ExitCode};
+use std::process::ExitCode;
 
 #[derive(Parser)]
 #[command(
@@ -169,7 +169,7 @@ fn run() -> Result<(), String> {
         } => {
             // Parse HEX input into bytes
             let bytes =
-                core::bytes::parse_hex(&value).map_err(|e| format!("Invalid HEX input: {e:?}"))?;
+                core::bytes::parse_hex(&value).map_err(|e| format!("Invalid HEX input: {e}"))?;
 
             // Validate byte count
             if bytes.len() != data_type.byte_size() {
@@ -257,7 +257,7 @@ fn run() -> Result<(), String> {
         Commands::Crc { algorithm } => match algorithm {
             CrcCommands::Modbus { value } => {
                 let bytes = core::bytes::parse_hex(&value)
-                    .map_err(|e| format!("Invalid hex input: {e:?}"))?;
+                    .map_err(|e| format!("Invalid HEX input: {e}"))?;
 
                 let crc = checksum::crc16::crc16_modbus(&bytes);
 
@@ -272,7 +272,7 @@ fn run() -> Result<(), String> {
 
             CrcCommands::CCITT { value } => {
                 let bytes = core::bytes::parse_hex(&value)
-                    .map_err(|e| format!("Invalid hex input: {e:?}"))?;
+                    .map_err(|e| format!("Invalid HEX input: {e}"))?;
 
                 let crc = checksum::crc16::crc16_ccitt(&bytes);
 
@@ -287,7 +287,7 @@ fn run() -> Result<(), String> {
 
             CrcCommands::Crc32 { value } => {
                 let bytes = core::bytes::parse_hex(&value)
-                    .map_err(|e| format!("Invalid hex input: {e:?}"))?;
+                    .map_err(|e| format!("Invalid HEX input: {e}"))?;
 
                 let crc = checksum::crc32::crc32(&bytes);
 
@@ -305,7 +305,7 @@ fn run() -> Result<(), String> {
 
             CrcCommands::Xor { value } => {
                 let bytes = core::bytes::parse_hex(&value)
-                    .map_err(|e| format!("Invalid hex input: {e:?}"))?;
+                    .map_err(|e| format!("Invalid HEX input: {e}"))?;
 
                 let crc = checksum::crc8::xor8(&bytes);
 

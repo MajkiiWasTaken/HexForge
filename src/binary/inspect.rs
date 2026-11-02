@@ -7,6 +7,7 @@
 * ver. 0.5.1
 *************************************************/
 
+use crate::binary::elf::parse_elf_dependencies;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -100,6 +101,7 @@ impl FileType {
             b if b.starts_with(b"OggS") => Self::Ogg,
             b if b.get(4..8) == Some(b"ftyp") => Self::Mp4,
             b if b.starts_with(b"RIFF") && b.get(8..12) == Some(b"AVI ") => Self::Avi,
+            b if b.starts_with(&[0x55, 0x46, 0x32, 0x0A, 0x57, 0x51, 0x5D, 0x9E]) => Self::Uf2,
 
             _ => Self::Unknown,
         }
@@ -212,7 +214,6 @@ pub fn inspect_file(path: &Path) -> Result<(), String> {
         println!("  Program hdrs: {}", info.program_headers);
         println!("  Section hdrs: {}", info.section_headers);
         println!("  ELF Flags:    0x{:08X}", info.flags);
-        
 
         if info.is_64_bit {
             println!("  Entry point:  0x{:016X}", info.entry_point);
@@ -234,6 +235,30 @@ pub fn inspect_file(path: &Path) -> Result<(), String> {
 
         if let Some(abi) = info.float_abi {
             println!("  Float ABI:   {abi}");
+        }
+
+        let dependencies = parse_elf_dependencies(data)?;
+
+        println!();
+        println!("ELF Dependencies:");
+
+        println!(
+            "  Dynamic segment: {}",
+            if dependencies.has_dynamic_segment {
+                "Present"
+            } else {
+                "None"
+            }
+        );
+
+        if dependencies.libraries.is_empty() {
+            println!("  Libraries:       None declared");
+        } else {
+            println!("  Libraries:");
+
+            for library in &dependencies.libraries {
+                println!("    {library}");
+            }
         }
     }
 

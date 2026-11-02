@@ -7,8 +7,6 @@
 * ver. 0.5.0
 *************************************************/
 
-use std::io::empty;
-
 pub fn search_bytes(data: &[u8], pattern: &[u8]) -> Vec<usize> {
     let mut matches = Vec::new();
 
