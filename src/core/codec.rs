@@ -153,7 +153,9 @@ pub fn encode(value: &str, data_type: DataType, endian: ByteOrder) -> Result<Vec
         }
 
         DataType::U16 => {
-            let number: u16 = value.parse().map_err(|e| format!("Invalid u16 value: {e}"))?;
+            let number: u16 = value
+                .parse()
+                .map_err(|e| format!("Invalid u16 value: {e}"))?;
 
             match endian {
                 ByteOrder::Big => number.to_be_bytes().to_vec(),
@@ -162,7 +164,9 @@ pub fn encode(value: &str, data_type: DataType, endian: ByteOrder) -> Result<Vec
         }
 
         DataType::I16 => {
-            let number: i16 = value.parse().map_err(|e| format!("Invalid i16 value: {e}"))?;
+            let number: i16 = value
+                .parse()
+                .map_err(|e| format!("Invalid i16 value: {e}"))?;
 
             match endian {
                 ByteOrder::Big => number.to_be_bytes().to_vec(),
@@ -171,7 +175,9 @@ pub fn encode(value: &str, data_type: DataType, endian: ByteOrder) -> Result<Vec
         }
 
         DataType::U32 => {
-            let number: u32 = value.parse().map_err(|e| format!("Invalid u32 value: {e}"))?;
+            let number: u32 = value
+                .parse()
+                .map_err(|e| format!("Invalid u32 value: {e}"))?;
 
             match endian {
                 ByteOrder::Big => number.to_be_bytes().to_vec(),
@@ -180,7 +186,9 @@ pub fn encode(value: &str, data_type: DataType, endian: ByteOrder) -> Result<Vec
         }
 
         DataType::I32 => {
-            let number: i32 = value.parse().map_err(|e| format!("Invalid i32 value: {e}"))?;
+            let number: i32 = value
+                .parse()
+                .map_err(|e| format!("Invalid i32 value: {e}"))?;
 
             match endian {
                 ByteOrder::Big => number.to_be_bytes().to_vec(),
@@ -189,7 +197,9 @@ pub fn encode(value: &str, data_type: DataType, endian: ByteOrder) -> Result<Vec
         }
 
         DataType::U64 => {
-            let number: u64 = value.parse().map_err(|e| format!("Invalid u64 value: {e}"))?;
+            let number: u64 = value
+                .parse()
+                .map_err(|e| format!("Invalid u64 value: {e}"))?;
 
             match endian {
                 ByteOrder::Big => number.to_be_bytes().to_vec(),
@@ -198,7 +208,9 @@ pub fn encode(value: &str, data_type: DataType, endian: ByteOrder) -> Result<Vec
         }
 
         DataType::I64 => {
-            let number: i64 = value.parse().map_err(|e| format!("Invalid i64 value: {e}"))?;
+            let number: i64 = value
+                .parse()
+                .map_err(|e| format!("Invalid i64 value: {e}"))?;
 
             match endian {
                 ByteOrder::Big => number.to_be_bytes().to_vec(),
@@ -207,7 +219,9 @@ pub fn encode(value: &str, data_type: DataType, endian: ByteOrder) -> Result<Vec
         }
 
         DataType::F32 => {
-            let number: f32 = value.parse().map_err(|e| format!("Invalid F32 value: {e}"))?;
+            let number: f32 = value
+                .parse()
+                .map_err(|e| format!("Invalid F32 value: {e}"))?;
 
             match endian {
                 ByteOrder::Big => number.to_be_bytes().to_vec(),
@@ -216,7 +230,9 @@ pub fn encode(value: &str, data_type: DataType, endian: ByteOrder) -> Result<Vec
         }
 
         DataType::F64 => {
-            let number: f64 = value.parse().map_err(|e| format!("Invalid f64 value: {e}"))?;
+            let number: f64 = value
+                .parse()
+                .map_err(|e| format!("Invalid f64 value: {e}"))?;
 
             match endian {
                 ByteOrder::Big => number.to_be_bytes().to_vec(),

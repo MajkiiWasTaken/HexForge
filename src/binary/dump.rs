@@ -10,7 +10,6 @@ use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::Path;
 
-
 pub fn dump_file(path: &Path, offset: Option<u64>, length: Option<u64>) -> Result<(), String> {
     let mut file = File::open(path).map_err(|e| format!("Cannot open file: {e}"))?;
 

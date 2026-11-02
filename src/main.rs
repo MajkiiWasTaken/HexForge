@@ -7,18 +7,21 @@
 * ver. 0.1.0
 *************************************************/
 mod binary;
-mod core;
-mod output;
-mod modbus;
 mod checksum;
+mod core;
+mod modbus;
+mod output;
 
-use crate::{core::{
-    codec::DataType,
-    endian::ByteOrder,
-    numeric::{NumberBase, parse_cli_number},
-}, modbus::order::{RegisterOrder, split_registers}};
+use crate::{
+    core::{
+        codec::DataType,
+        endian::ByteOrder,
+        numeric::{NumberBase, parse_cli_number},
+    },
+    modbus::order::{RegisterOrder, split_registers},
+};
 use clap::{Parser, Subcommand};
-use std::process::ExitCode;
+use std::{path, process::ExitCode};
 
 #[derive(Parser)]
 #[command(
@@ -92,12 +95,32 @@ enum Commands {
         #[command(subcommand)]
         algorithm: CrcCommands,
     },
+    
+    Search {
+        /// Binary file to search
+        path: std::path::PathBuf,
+
+        /// HEX byte sequence to find
+        pattern: String,
+    },
 }
 
 #[derive(Subcommand)]
 enum CrcCommands {
     Modbus {
         /// HEX bytes used for CRC calculation
+        value: String,
+    },
+
+    CCITT {
+        value: String,
+    },
+
+    Crc32 {
+        value: String,
+    },
+
+    Xor {
         value: String,
     },
 }
@@ -130,24 +153,36 @@ fn run() -> Result<(), String> {
         Commands::Decode {
             value,
             data_type,
-            endian: _,
+            endian,
             order,
         } => {
+            // Parse HEX input into bytes
             let bytes = core::bytes::parse_hex(&value)
                 .map_err(|e| format!("Invalid HEX input: {e:?}"))?;
 
-            let array: [u8; 4] = bytes
-                .as_slice()
-                .try_into()
-                .map_err(|_| "Expected exactly 4 bytes".to_string())?;
+            // Validate byte count
+            if bytes.len() != data_type.byte_size() {
+                return Err(format!(
+                    "Expected {} bytes, got {}",
+                    data_type.byte_size(),
+                    bytes.len()
+                ));
+            }
 
-            let reordered = modbus::order::reorder_bytes(array, order);
+            // Apply register order for 32-bit values
+            let bytes = if bytes.len() == 4 {
+                let array: [u8; 4] = bytes
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| "Expected exactly 4 bytes".to_string())?;
 
-            let result = core::codec::decode(
-                &reordered,
-                data_type,
-                ByteOrder::Big,
-            )?;
+                modbus::order::reorder_bytes(array, order).to_vec()
+            } else {
+                bytes
+            };
+
+            // Decode using selected endian
+            let result = core::codec::decode(&bytes, data_type, endian)?;
 
             println!("Decoded value: {result}");
 
@@ -182,35 +217,97 @@ fn run() -> Result<(), String> {
 
             // Convert bytes to HEX string
             let hex = core::bytes::encode_hex(&bytes);
-            
-            
 
             println!("HEX: {hex}");
 
             Ok(())
         }
 
-        Commands::Crc { algorithm } => {
-            match algorithm {
-                CrcCommands::Modbus { value } => {
-                    let bytes = core::bytes::parse_hex(&value) .map_err(|e| format!("Invalid hex input: {e:?}"))?;
+        Commands::Search { path, pattern } => {
+            // Parse HEX pattern
+            let pattern_bytes = core::bytes::parse_hex(&pattern)
+                .map_err(|e| format!("Invalid HEX pattern: {e:?}"))?;
 
-                    let crc = checksum::crc16::crc16_modbus(&bytes);
+            // Read binary file
+            let data = std::fs::read(&path)
+                .map_err(|e| format!("Cannot read file: {e}"))?;
 
-                    let crc_bytes = crc.to_le_bytes();
+            // Search for matching byte sequences
+            let matches = binary::search::search_bytes(&data, &pattern_bytes);
 
-                    println!("CRC: 0x{crc:04X}");
-
-                    println!(
-                        "CRC bytes: {:02X} {:02X}",
-                        crc_bytes[0],
-                        crc_bytes[1]
-                    );
-
-                    Ok(())
-                }
+            for offset in &matches {
+                println!("Match at offset: 0x{offset:08X}");
             }
+
+            println!("Total matches: {}", matches.len());
+
+            Ok(())
         }
+
+        Commands::Crc { algorithm } => match algorithm {
+            CrcCommands::Modbus { value } => {
+                let bytes = core::bytes::parse_hex(&value)
+                    .map_err(|e| format!("Invalid hex input: {e:?}"))?;
+
+                let crc = checksum::crc16::crc16_modbus(&bytes);
+
+                let crc_bytes = crc.to_le_bytes();
+
+                println!("CRC: 0x{crc:04X}");
+
+                println!("CRC bytes: {:02X} {:02X}", crc_bytes[0], crc_bytes[1]);
+
+                Ok(())
+            }
+
+            CrcCommands::CCITT { value } => {
+                let bytes = core::bytes::parse_hex(&value)
+                    .map_err(|e| format!("Invalid hex input: {e:?}"))?;
+
+                let crc = checksum::crc16::crc16_ccitt(&bytes);
+
+                let crc_bytes = crc.to_be_bytes();
+
+                println!("CRC: 0x{crc:04X}");
+
+                println!("CRC bytes: {:02X} {:02X}", crc_bytes[0], crc_bytes[1]);
+
+                Ok(())
+            }
+
+            CrcCommands::Crc32 { value } => {
+                let bytes = core::bytes::parse_hex(&value)
+                    .map_err(|e| format!("Invalid hex input: {e:?}"))?;
+
+                let crc = checksum::crc32::crc32(&bytes);
+
+                let crc_bytes = crc.to_le_bytes();
+
+                println!("CRC: 0x{crc:04X}");
+
+                println!(
+                    "CRC bytes: {:02X} {:02X} {:02X} {:02X}",
+                    crc_bytes[0], crc_bytes[1], crc_bytes[2], crc_bytes[3]
+                );
+
+                Ok(())
+            }
+
+            CrcCommands::Xor { value } => {
+                let bytes = core::bytes::parse_hex(&value)
+                    .map_err(|e| format!("Invalid hex input: {e:?}"))?;
+
+                let crc = checksum::crc8::xor8(&bytes);
+
+                let crc_bytes = crc.to_be_bytes();
+
+                println!("CRC: 0x{crc:X}");
+
+                println!("CRC bytes: {:02X}", crc_bytes[0]);
+
+                Ok(())
+            }
+        },
     }
 }
 

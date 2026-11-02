@@ -8,7 +8,6 @@
 *************************************************/
 use clap::ValueEnum;
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum RegisterOrder {
     ABCD, // 41 20 00 00

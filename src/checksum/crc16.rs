@@ -7,7 +7,6 @@
 * ver. 0.1.0
 *************************************************/
 
-
 pub fn crc16_modbus(data: &[u8]) -> u16 {
     let mut crc: u16 = 0xFFFF;
 
@@ -24,6 +23,26 @@ pub fn crc16_modbus(data: &[u8]) -> u16 {
             // If the original LSB was 1, XOR with the reflected polynomial.
             if lsb == 1 {
                 crc ^= 0xA001;
+            }
+        }
+    }
+
+    crc
+}
+
+pub fn crc16_ccitt(data: &[u8]) -> u16 {
+    let mut crc: u16 = 0xFFFF;
+
+    for &byte in data {
+        crc ^= (byte as u16) << 8;
+
+        for _ in 0..8 {
+            let msb = crc & 0x8000;
+
+            crc <<= 1;
+
+            if msb != 0 {
+                crc ^= 0x1021
             }
         }
     }
