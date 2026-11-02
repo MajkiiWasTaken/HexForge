@@ -10,6 +10,7 @@
 use colored::Colorize;
 
 pub fn banner() {
+    println!();
     println!(
         "{}",
         format!("◆ HexForge v{}", env!("CARGO_PKG_VERSION"))

@@ -95,7 +95,7 @@ enum Commands {
         #[command(subcommand)]
         algorithm: CrcCommands,
     },
-    
+
     Search {
         /// Binary file to search
         path: std::path::PathBuf,
@@ -108,7 +108,12 @@ enum Commands {
         /// BINS
         file1: std::path::PathBuf,
         file2: std::path::PathBuf,
-    }
+    },
+
+    Inspect {
+        /// Path to the binary file
+        path: std::path::PathBuf,
+    },
 }
 
 #[derive(Subcommand)]
@@ -163,8 +168,8 @@ fn run() -> Result<(), String> {
             order,
         } => {
             // Parse HEX input into bytes
-            let bytes = core::bytes::parse_hex(&value)
-                .map_err(|e| format!("Invalid HEX input: {e:?}"))?;
+            let bytes =
+                core::bytes::parse_hex(&value).map_err(|e| format!("Invalid HEX input: {e:?}"))?;
 
             // Validate byte count
             if bytes.len() != data_type.byte_size() {
@@ -235,8 +240,7 @@ fn run() -> Result<(), String> {
                 .map_err(|e| format!("Invalid HEX pattern: {e:?}"))?;
 
             // Read binary file
-            let data = std::fs::read(&path)
-                .map_err(|e| format!("Cannot read file: {e}"))?;
+            let data = std::fs::read(&path).map_err(|e| format!("Cannot read file: {e}"))?;
 
             // Search for matching byte sequences
             let matches = binary::search::search_bytes(&data, &pattern_bytes);
@@ -317,11 +321,9 @@ fn run() -> Result<(), String> {
 
         Commands::Compare { file1, file2 } => {
             // Read both files
-            let a = std::fs::read(&file1)
-                .map_err(|e| format!("Cannot read first file: {e}"))?;
+            let a = std::fs::read(&file1).map_err(|e| format!("Cannot read first file: {e}"))?;
 
-            let b = std::fs::read(&file2)
-                .map_err(|e| format!("Cannot read second file: {e}"))?;
+            let b = std::fs::read(&file2).map_err(|e| format!("Cannot read second file: {e}"))?;
 
             // Compare binary data
             let differences = binary::compare::compare_bytes(&a, &b);
@@ -331,27 +333,32 @@ fn run() -> Result<(), String> {
             println!("File 2: {}", file2.display());
 
             println!();
-            println!("{:<12} {:>6} {:>6}", "Offset", "File 1", "File 2");
-            println!("{}", "-".repeat(28));
+            println!("{:<12} | {:>6} | {:>6} |", "Offset", "File 1", "File 2");
+            println!("{}", "-".repeat(32));
 
             for &offset in &differences {
                 let left = a.get(offset);
                 let right = b.get(offset);
 
                 println!(
-                    "{:<12} {:>6} {:>6}",
+                    "{:<12} | {:>6} | {:>6} |",
                     format!("0x{offset:08X}"),
                     left.map(|b| format!("{b:02X}"))
                         .unwrap_or_else(|| "--".to_string()),
-                    right.map(|b| format!("{b:02X}"))
+                    right
+                        .map(|b| format!("{b:02X}"))
                         .unwrap_or_else(|| "--".to_string())
                 );
             }
 
+            println!("{}", "-".repeat(32));
+            println!();
             println!("Total differences: {}", differences.len());
 
             Ok(())
         }
+
+        Commands::Inspect { path } => binary::inspect::inspect_file(&path),
     }
 }
 
