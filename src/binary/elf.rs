@@ -15,6 +15,14 @@ pub struct ElfInfo {
     pub file_type: &'static str,
     pub entry_point: u64,
     pub is_64_bit: bool,
+    pub os_abi: &'static str,
+    pub abi_version: u8,
+    pub program_headers: u16,
+    pub section_headers: u16,
+    pub flags: u32,
+    pub interpreter: Option<String>,
+    pub arm_eabi: Option<u32>,
+    pub float_abi: Option<&'static str>,
 }
 
 pub fn parse_elf(data: &[u8]) -> Result<ElfInfo, String> {
@@ -132,6 +140,124 @@ pub fn parse_elf(data: &[u8]) -> Result<ElfInfo, String> {
         _ => "Unknown architecture",
     };
 
+    let os_abi = match data[7] {
+        0 => "System V",
+        1 => "HP-UX",
+        2 => "NetBSD",
+        3 => "GNU/Linux",
+        6 => "Solaris",
+        7 => "AIX",
+        8 => "IRIX",
+        9 => "FreeBSD",
+        12 => "OpenBSD",
+        _ => "Unknown",
+    };
+
+    let abi_version = data[8];
+
+    let (flags, program_headers, section_headers) = if is_64_bit {
+        (
+            read_u32(0x30),
+            read_u16(0x38),
+            read_u16(0x3C),
+        )
+    } else {
+        (
+            read_u32(0x24),
+            read_u16(0x2C),
+            read_u16(0x30),
+        )
+    };
+
+    let arm_eabi = if e_machine == 40 {
+        Some((flags >> 24) & 0xFF)
+    } else {
+        None
+    };
+
+    let float_abi = if e_machine == 40 {
+        match flags & 0x00000600 {
+            0x00000200 => Some("Soft-float"),
+            0x00000400 => Some("Hard-float"),
+            0x00000000 => Some("Unspecified"),
+            _ => Some("Conflicting flags"),
+        }
+    } else {
+        None
+    };
+
+    let (phoff, phentsize) = if is_64_bit {
+        (read_u64(0x20), read_u16(0x36))
+    } else {
+        (read_u32(0x1C) as u64, read_u16(0x2A))
+    };
+
+    let mut interpreter = None;
+
+    let min_phentsize = if is_64_bit { 56u64 } else { 32u64 };
+
+    if program_headers > 0 && u64::from(phentsize) < min_phentsize {
+        return Err("Invalid ELF program header entry size".into());
+    }
+
+    for i in 0..program_headers {
+        let entry_offset = phoff
+            .checked_add(
+                u64::from(i) * u64::from(phentsize)
+            )
+            .ok_or("ELF program header offset overflow")?;
+
+        let entry_offset = usize::try_from(entry_offset)
+            .map_err(|_| "ELF program header offset is too large")?;
+
+        let entry_end = entry_offset
+            .checked_add(min_phentsize as usize)
+            .ok_or("ELF program header end overflow")?;
+
+        if entry_end > data.len() {
+            return Err(
+                "Incomplete ELF program headers; read more file data".into()
+            );
+        }
+
+        let p_type = read_u32(entry_offset);
+
+        if p_type == 3 {
+            let (p_offset, p_filesz) = if is_64_bit {
+                (
+                    read_u64(entry_offset + 8),
+                    read_u64(entry_offset + 32),
+                )
+            } else {
+                (
+                    read_u32(entry_offset + 4) as u64,
+                    read_u32(entry_offset + 16) as u64,
+                )
+            };
+
+            let start = usize::try_from(p_offset)
+                .map_err(|_| "Interpreter offset is too large")?;
+
+            let length = usize::try_from(p_filesz)
+                .map_err(|_| "Interpreter length is too large")?;
+
+            let end = start
+                .checked_add(length)
+                .ok_or("Interpreter range overflow")?;
+
+            let raw = data.get(start..end)
+                .ok_or("Interpreter is outside loaded file data")?;
+
+            let raw = raw.strip_suffix(&[0]).unwrap_or(raw);
+
+            let path = std::str::from_utf8(raw)
+                .map_err(|_| "Invalid interpreter path encoding")?;
+
+            interpreter = Some(path.to_string());
+            break;
+        }
+    }
+
     Ok(ElfInfo {
         class,
         endian,
@@ -139,6 +265,14 @@ pub fn parse_elf(data: &[u8]) -> Result<ElfInfo, String> {
         file_type,
         entry_point,
         is_64_bit,
+        os_abi,
+        abi_version,
+        program_headers,
+        section_headers,
+        flags,
+        interpreter,
+        arm_eabi,
+        float_abi,
     })
 }
 

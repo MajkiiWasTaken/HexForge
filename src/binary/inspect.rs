@@ -207,11 +207,33 @@ pub fn inspect_file(path: &Path) -> Result<(), String> {
         println!("  Endianness:   {}", info.endian);
         println!("  Architecture: {}", info.architecture);
         println!("  Type:         {}", info.file_type);
+        println!("  OS/ABI:       {}", info.os_abi);
+        println!("  ABI Version:  {}", info.abi_version);
+        println!("  Program hdrs: {}", info.program_headers);
+        println!("  Section hdrs: {}", info.section_headers);
+        println!("  ELF Flags:    0x{:08X}", info.flags);
+        
 
         if info.is_64_bit {
             println!("  Entry point:  0x{:016X}", info.entry_point);
         } else {
             println!("  Entry point:  0x{:08X}", info.entry_point);
+        }
+
+        println!();
+        println!("ELF Runtime:");
+
+        println!(
+            "  Interpreter: {}",
+            info.interpreter.as_deref().unwrap_or("None")
+        );
+
+        if let Some(version) = info.arm_eabi {
+            println!("  ARM EABI:    Version {version}");
+        }
+
+        if let Some(abi) = info.float_abi {
+            println!("  Float ABI:   {abi}");
         }
     }
 
