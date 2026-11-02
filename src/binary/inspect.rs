@@ -155,18 +155,20 @@ impl FileType {
     }
 }
 
+use crate::binary::elf::parse_elf;
+
 pub fn inspect_file(path: &Path) -> Result<(), String> {
     // Read file metadata
     let metadata =
         std::fs::metadata(path).map_err(|e| format!("Cannot read file metadata: {e}"))?;
 
     if !metadata.is_file() {
-        return Err("The specified path is not a file".to_string());
+        return Err("The specified path is not a file".into());
     }
 
     let size = metadata.len();
 
-    // Read the first 512 bytes for signature detection
+    // Read enough bytes for signatures and ELF headers
     let mut file = File::open(path).map_err(|e| format!("Cannot open file: {e}"))?;
 
     let mut buffer = [0u8; 512];
@@ -180,20 +182,38 @@ pub fn inspect_file(path: &Path) -> Result<(), String> {
     // Detect file type
     let file_type = FileType::from_bytes(data);
 
-    // Format the first 16 bytes
+    // Show the first 16 bytes
     let first_bytes = &data[..data.len().min(16)];
 
     let hex = first_bytes
         .iter()
         .map(|byte| format!("{byte:02X}"))
-        .collect::<Vec<String>>()
+        .collect::<Vec<_>>()
         .join(" ");
 
-    println!("File:        {}", path.display());
-    println!("Size:        {size} bytes");
-    println!("Size (HEX):  0x{size:X}");
-    println!("First bytes: {hex}");
-    println!("File type:   {}", file_type.name());
+    println!("File:          {}", path.display());
+    println!("Size:          {size} bytes");
+    println!("Size (HEX):    0x{size:X}");
+    println!("First bytes:   {hex}");
+    println!("File type:     {}", file_type.name());
+
+    // Inspect ELF-specific information
+    if data.starts_with(b"\x7FELF") {
+        let info = parse_elf(data)?;
+
+        println!();
+        println!("ELF Information:");
+        println!("  Class:        {}", info.class);
+        println!("  Endianness:   {}", info.endian);
+        println!("  Architecture: {}", info.architecture);
+        println!("  Type:         {}", info.file_type);
+
+        if info.is_64_bit {
+            println!("  Entry point:  0x{:016X}", info.entry_point);
+        } else {
+            println!("  Entry point:  0x{:08X}", info.entry_point);
+        }
+    }
 
     Ok(())
 }
