@@ -116,6 +116,7 @@ enum Commands {
     },
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Subcommand)]
 enum CrcCommands {
     Modbus {

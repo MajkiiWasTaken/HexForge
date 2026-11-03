@@ -89,7 +89,6 @@ impl FileType {
             b if b.starts_with(b"BM") => Self::Bmp,
             b if b.starts_with(b"II\x2A\0") || b.starts_with(b"MM\0\x2A") => Self::Tiff,
             b if b.starts_with(b"RIFF") && b.get(8..12) == Some(b"WEBP") => Self::WebP,
-            b if b.starts_with(&[0x00, 0x00, 0x01, 0x00]) => Self::Ico,
 
             b if b.starts_with(b"%PDF-") => Self::Pdf,
             b if b.starts_with(b"SQLite format 3\0") => Self::Sqlite,
@@ -101,7 +100,9 @@ impl FileType {
             b if b.starts_with(b"OggS") => Self::Ogg,
             b if b.get(4..8) == Some(b"ftyp") => Self::Mp4,
             b if b.starts_with(b"RIFF") && b.get(8..12) == Some(b"AVI ") => Self::Avi,
-            b if b.starts_with(&[0x55, 0x46, 0x32, 0x0A, 0x57, 0x51, 0x5D, 0x9E]) => Self::Uf2,
+            [0x00, 0x00, 0x01, 0x00, ..] => Self::Ico,
+
+            [0x55, 0x46, 0x32, 0x0A, 0x57, 0x51, 0x5D, 0x9E, ..] => Self::Uf2,
 
             _ => Self::Unknown,
         }

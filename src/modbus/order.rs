@@ -8,6 +8,7 @@
 *************************************************/
 use clap::ValueEnum;
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum RegisterOrder {
     ABCD, // 41 20 00 00
